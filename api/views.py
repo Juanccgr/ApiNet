@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
 from django.http import JsonResponse
 from .forms import *
@@ -57,36 +57,46 @@ def delete_employee(request, employee_id):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-class EmployeeListView(ListView):
-    model = Employee
-    template_name = 'api/ver_employee.html'
-    context_object_name = 'employees'
-    paginate_by = 10  # Número de empleados por página
+def ver_employee(request):
+    employees = Employee.objects.select_related('idsubarea__idarea').all()
+    document_number = request.GET.get('document_number', '')
+    if document_number:
+        employees = employees.filter(documentnumber__icontains=document_number)
 
-    def get_queryset(self):
-        queryset = Employee.objects.all()
+    empleados_por_pagina = 10
 
-        # Manejar la búsqueda por cédula
-        document_number = self.request.GET.get('document_number', '')
-        if document_number:
-            queryset = queryset.filter(documentnumber__icontains=document_number)
+    # Obtiene el número de página desde la solicitud GET
+    page = request.GET.get('page', 1)
 
-        return queryset
+    paginator = Paginator(employees, empleados_por_pagina)
+
+    try:
+        # Obtiene la página solicitada
+        employees = paginator.page(page)
+    except PageNotAnInteger:
+        # Si la página no es un número entero, muestra la primera página
+        employees = paginator.page(1)
+    except EmptyPage:
+        # Si la página está fuera de rango, muestra la última página
+        employees = paginator.page(paginator.num_pages)
+
+    context = {
+        'employees': employees,
+    }
+    return render(request, 'api/ver_employee.html', context)
+
 
 def update_employee(request, employee_id):
     # Obtiene el objeto Employee que deseas actualizar
     employee = get_object_or_404(Employee, id=employee_id)
 
     if request.method == 'POST':
-        # Si la solicitud es un POST, procesa el formulario y actualiza el empleado
         form = EmployeeUpdateForm(request.POST, instance=employee)
         if form.is_valid():
             form.save()
-            # Redirige a la página 'ver_employee' después de una actualización exitosa
             return redirect('ver_employee')
         else:
             return render(request, 'api/update_employee.html', {'form': form, 'employee': employee})
     else:
-        # Si la solicitud es GET, renderiza el formulario para que el usuario lo complete
         form = EmployeeUpdateForm(instance=employee)
         return render(request, 'api/update_employee.html', {'form': form, 'employee': employee})
