@@ -1,0 +1,28 @@
+{% extends "layout/base.html" %}
+{% load static %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Bare - Start Bootstrap Template</title>
+        {% block title %}Concentrix{% endblock  %}
+    </head>
+    <body>
+        {% block header %}
+        {% include "layout/partials/headerbase.html" %}
+        {% endblock  %}
+
+
+        <!-- Page content-->
+
+        {% block content %}
+        {% endblock  %}
+
+        {% block footer %}
+        {% include "layout/partials/footer.html" %}
+        {% endblock  %}
+
+    </body>
+</html>

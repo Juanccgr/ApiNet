@@ -1,0 +1,55 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %} Nuevo Empleado {% endblock %}
+    <link rel="icon" type="image/jpg" href="{% static 'img/favicon.png' %}" />
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"> {% block 'style' %}{% endblock %}
+</head>
+
+{% block content %}
+<body id="page-top">
+
+
+    <div id="wrapper">
+
+      
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            
+            <div id="content ">
+
+                {% include 'layout/partials/headerbase.html' %}
+
+                
+                <div>
+
+                    <div class="d-flex flex-column w-50 mx-auto">
+                        <h1 class="h2 text-success bg-body p-3 mt-5 text-center mx-auto w-50 shadow" style="border-radius: 10px;"> <b> Actualizar EMPLEADO </b></h1>
+                    	    <form method="post" action="{% url 'update_employee' employee.id %}">
+                                {% csrf_token %}
+                                {{ form.as_p }}
+                                <button type="submit">Guardar cambios</button>
+                            </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+            <div class="copyright text-center my-auto">
+                <span>Copyright &copy; Mi Web 2023</span>
+            </div>
+        </div>
+    </footer>
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+
+{% endblock %}

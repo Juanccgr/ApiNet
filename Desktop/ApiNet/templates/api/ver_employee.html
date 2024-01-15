@@ -1,0 +1,150 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %} Employees {% endblock %}
+    <link rel="icon" type="image/jpg" href="{% static 'img/favicon.png' %}" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>  {% block 'style' %}{% endblock %}
+
+</head>
+{% block content %}
+
+<body id="page-top">
+
+
+    <div id="wrapper">
+
+
+        <div id="content-wrapper" class="d-flex flex-column">
+
+ 
+            <div id="content ">
+
+                {% include 'layout/partials/headerbase.html' %}
+
+                <!-- Begin Page Content -->
+                <div>
+
+                    <div class="container">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h2 text-primary bg-body p-3 mt-2 text-center mx-auto w-50 "><b>VER EMPLEADOS</b></h1>
+                        </div>
+
+                        <table id="datatable_employees" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="cole" scope="col">Nombres</th>
+                                    <th class="cole" scope="col">Apellidos</th>
+                                    <th class="cole" scope="col">Numero de documento</th>
+                                    <th class="cole" scope="col">Subárea</th>
+                                    <th class="cole" scope="col">Área</th>
+                                    <th class="cole" scope="col">País</th>
+                                    <th class="cole" scope="col">Acciones</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="tablebody_employees">
+                                {% for employee in employees %}
+                                    <tr>
+                                        <td>{{ employee.firstname }}</td>
+                                        <td>{{ employee.lastname }}</td>
+                                        <td>{{ employee.documentnumber }}</td>
+                                        <td>{{ employee.idsubarea.namesubarea }}</td>
+                                        <td>{{ employee.idsubarea.idarea.namearea }}</td>
+                                        <td>{{ employee.idsubarea.idarea.idcountry.namecountry }}</td>
+                                        <td>
+                                            <a href="{% url 'update_employee' employee.id %}" class="btn btn-primary">Actualizar Empleado</a>
+                                            <button type="button" class="btn btn-danger delete-button" data-employee-id="{{ employee.id }}">Eliminar</button>
+                                        </td>                                        
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        {% for employee in employees %}
+                        <!-- Modal Borrar-->
+                            <div class="modal fade" id="staticBackdrop{{ employee.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel{{ employee.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="staticBackdropLabel{{ employee.id }}">Eliminar Empleado</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>¿Está seguro de que desea eliminar al empleado '{{ employee.firstname }} {{ employee.lastname }}'?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <a href="{% url 'delete_employee' employee_id=employee.id %}" class="btn btn-danger delete-confirm" data-employee-id="{{ employee.id }}">Confirmar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/rowgroup/1.1.3/js/dataTables.rowGroup.min.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+
+    <!--  scripts locales -->
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/table_employees.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            // Agrega un escuchador de clics para mostrar el modal de eliminación
+            $('#datatable_employees').on('click', '.delete-button', function () {
+                var employeeId = $(this).data('employee-id');
+                $('#staticBackdrop' + employeeId).modal('show');
+            });
+    
+            // Agrega un escuchador de clics para confirmar la eliminación
+            $('.modal-footer .btn-danger').on('click', function () {
+                var employeeId = $(this).data('employee-id');
+                eliminarEmpleado(employeeId);
+            });
+    
+            function eliminarEmpleado(employeeId) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/delete_employee/' + employeeId + '/',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function () {
+                        // Cerrar el modal después de eliminar exitosamente
+                        $('#staticBackdrop' + employeeId).modal('hide');
+                        // Aquí, recargamos la página completa
+                        window.location.reload();
+                    },
+                    error: function (error) {
+                        console.error('Error al eliminar empleado:', error);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+
+{% endblock %}
+
+{% block footer %}
+{% include "layout/partials/footer.html" %}
+{% endblock  %}
