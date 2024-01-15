@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView
 from django.urls import reverse
 from django.http import JsonResponse
 from .forms import *
@@ -56,14 +57,21 @@ def delete_employee(request, employee_id):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-def ver_employee(request):
-    # Obtiene todos los empleados almacenados en la base de datos
-    employees = Employee.objects.select_related('idsubarea__idarea').all()
-    # Pasa los datos al contexto y renderiza la plantilla
-    context = {
-        'employees': employees,
-    }
-    return render(request, 'api/ver_employee.html', context)
+class EmployeeListView(ListView):
+    model = Employee
+    template_name = 'api/ver_employee.html'
+    context_object_name = 'employees'
+    paginate_by = 10  # Número de empleados por página
+
+    def get_queryset(self):
+        queryset = Employee.objects.all()
+
+        # Manejar la búsqueda por cédula
+        document_number = self.request.GET.get('document_number', '')
+        if document_number:
+            queryset = queryset.filter(documentnumber__icontains=document_number)
+
+        return queryset
 
 def update_employee(request, employee_id):
     # Obtiene el objeto Employee que deseas actualizar
